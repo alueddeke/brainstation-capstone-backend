@@ -73,24 +73,64 @@ app.post("/response/gemini", async (req, res) => {
   }
 });
 
-// app.post("/response/gpt", async (req, res) => {
-//   const { prompt } = req.body;
-//   try {
-//     const completion = await openai.chat.completions.create({
-//       model: "gpt-3.5-turbo",
-//       messages: [{ role: "user", content: prompt }],
-//       max_tokens: 300,
-//     });
-//     //may need to do just data or just choices to define what we actually want
-//     const response = completion.choices[0].message.content;
-//     console.log("gpt");
-//     console.log("this was a gpt response", response);
-//     res.send(response);
-//   } catch (error) {
-//     console.error("Error generating response:", error);
-//     res.status(500).send("Error generating response");
-//   }
-// });
+app.post("/response/gpt", async (req, res) => {
+  const { prompt } = req.body;
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 300,
+    });
+    //may need to do just data or just choices to define what we actually want
+    const response = completion.choices[0].message.content;
+    console.log("gpt");
+    console.log("this was a gpt response", response);
+    res.send(response);
+  } catch (error) {
+    console.error("Error generating response:", error);
+    res.status(500).send("Error generating response");
+  }
+});
+
+app.post("/response/perplexity", async (req, res) => {
+  const { prompt } = req.body;
+
+  // Define your options for the fetch request
+  const options = {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      authorization: `Bearer ${process.env.PERPLEXITY_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "sonar-small-online",
+      messages: [
+        { role: "system", content: "Be precise and concise." },
+        { role: "user", content: prompt },
+      ],
+    }),
+  };
+
+  try {
+    // Make the fetch request
+    const response = await fetch(
+      "https://api.perplexity.ai/chat/completions",
+      options
+    );
+
+    // Convert response to JSON
+    const jsonResponse = await response.json();
+
+    // Send the response back to the client
+    res.json(jsonResponse);
+  } catch (error) {
+    console.error("Error fetching response from Perplexity AI:", error);
+    res
+      .status(500)
+      .json({ error: "Error fetching response from Perplexity AI" });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`server is running at http://localhost:${PORT}`);
