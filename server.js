@@ -113,16 +113,13 @@ app.post("/response/perplexity", async (req, res) => {
   };
 
   try {
-    // Make the fetch request
     const response = await fetch(
       "https://api.perplexity.ai/chat/completions",
       options
     );
 
-    // Convert response to JSON
     const jsonResponse = await response.json();
 
-    // Send the response back to the client
     res.json(jsonResponse);
   } catch (error) {
     console.error("Error fetching response from Perplexity AI:", error);
