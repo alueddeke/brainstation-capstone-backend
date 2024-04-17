@@ -13,7 +13,7 @@ const PORT = process.env.PORT;
 const app = express();
 
 app.use(cors());
-//middleware parses each request into json format
+
 app.use(bodyParser.json());
 
 const openai = new OpenAI({
@@ -33,7 +33,7 @@ app.post("/response/gemini", async (req, res) => {
       temperature: 0.9,
       topK: 1,
       topP: 1,
-      maxOutputTokens: 500,
+      maxOutputTokens: 350,
     };
 
     const safetySettings = [
@@ -64,8 +64,7 @@ app.post("/response/gemini", async (req, res) => {
     });
 
     const response = result.response.text();
-    console.log("geminii");
-    console.log("this was a gemini response", response);
+
     res.send(response);
   } catch (error) {
     console.error("Error generating response:", error);
@@ -81,10 +80,9 @@ app.post("/response/gpt", async (req, res) => {
       messages: [{ role: "user", content: prompt }],
       max_tokens: 300,
     });
-    //may need to do just data or just choices to define what we actually want
+
     const response = completion.choices[0].message.content;
-    console.log("gpt");
-    console.log("this was a gpt response", response);
+
     res.send(response);
   } catch (error) {
     console.error("Error generating response:", error);
@@ -95,7 +93,6 @@ app.post("/response/gpt", async (req, res) => {
 app.post("/response/perplexity", async (req, res) => {
   const { prompt } = req.body;
 
-  // Define your options for the fetch request
   const options = {
     method: "POST",
     headers: {
@@ -120,7 +117,9 @@ app.post("/response/perplexity", async (req, res) => {
 
     const jsonResponse = await response.json();
 
-    res.json(jsonResponse);
+    const perplexityResponse = jsonResponse.choices[0].message.content;
+
+    res.json(perplexityResponse);
   } catch (error) {
     console.error("Error fetching response from Perplexity AI:", error);
     res
