@@ -76,7 +76,7 @@ app.post("/response/gpt", async (req, res) => {
   const { prompt } = req.body;
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4-turbo",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 300,
     });
@@ -101,7 +101,7 @@ app.post("/response/perplexity", async (req, res) => {
       authorization: `Bearer ${process.env.PERPLEXITY_KEY}`,
     },
     body: JSON.stringify({
-      model: "sonar-small-online",
+      model: "llama-3-sonar-small-32k-online",
       messages: [
         { role: "system", content: "Be precise and concise." },
         { role: "user", content: prompt },
