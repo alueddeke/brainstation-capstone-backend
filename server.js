@@ -9,11 +9,14 @@ const {
   HarmBlockThreshold,
 } = require("@google/generative-ai");
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 const app = express();
 
-const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000"];
-
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:3000",
+  "https://gist-antonilueddeke.netlify.app",
+];
 app.use(
   cors({
     origin: function (origin, callback) {
