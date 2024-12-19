@@ -111,7 +111,6 @@ app.post("/response/gpt", async (req, res) => {
     res.status(500).send("Error generating response");
   }
 });
-
 app.post("/response/perplexity", async (req, res) => {
   const { prompt } = req.body;
 
@@ -123,11 +122,12 @@ app.post("/response/perplexity", async (req, res) => {
       authorization: `Bearer ${process.env.PERPLEXITY_KEY}`,
     },
     body: JSON.stringify({
-      model: "llama-3-sonar-small-32k-online",
+      model: "sonar-medium-online", // Updated model name
       messages: [
         { role: "system", content: "Be precise and concise." },
         { role: "user", content: prompt },
       ],
+      max_tokens: 300, // Added token limit to match other endpoints
     }),
   };
 
@@ -137,16 +137,26 @@ app.post("/response/perplexity", async (req, res) => {
       options
     );
 
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Perplexity API Error:", errorData);
+      throw new Error(`API responded with status ${response.status}`);
+    }
+
     const jsonResponse = await response.json();
 
-    const perplexityResponse = jsonResponse.choices[0].message.content;
+    if (!jsonResponse.choices || !jsonResponse.choices[0]) {
+      throw new Error("Invalid response format from Perplexity API");
+    }
 
+    const perplexityResponse = jsonResponse.choices[0].message.content;
     res.json(perplexityResponse);
   } catch (error) {
     console.error("Error fetching response from Perplexity AI:", error);
-    res
-      .status(500)
-      .json({ error: "Error fetching response from Perplexity AI" });
+    res.status(500).json({
+      error: "Error fetching response from Perplexity AI",
+      details: error.message,
+    });
   }
 });
 
