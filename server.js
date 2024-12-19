@@ -113,6 +113,7 @@ app.post("/response/gpt", async (req, res) => {
 });
 app.post("/response/perplexity", async (req, res) => {
   const { prompt } = req.body;
+  console.log("Received prompt:", prompt);
 
   const options = {
     method: "POST",
@@ -122,40 +123,58 @@ app.post("/response/perplexity", async (req, res) => {
       authorization: `Bearer ${process.env.PERPLEXITY_KEY}`,
     },
     body: JSON.stringify({
-      model: "sonar-medium-online", // Updated model name
+      model: "sonar-medium-online",
       messages: [
         { role: "system", content: "Be precise and concise." },
         { role: "user", content: prompt },
       ],
-      max_tokens: 300, // Added token limit to match other endpoints
+      max_tokens: 300,
     }),
   };
 
   try {
+    console.log("Making request to Perplexity API with options:", {
+      ...options,
+      headers: { ...options.headers, authorization: "REDACTED" },
+    });
+
     const response = await fetch(
       "https://api.perplexity.ai/chat/completions",
       options
     );
 
+    console.log("Perplexity API response status:", response.status);
+    const responseText = await response.text();
+    console.log("Raw response:", responseText);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Perplexity API Error:", errorData);
-      throw new Error(`API responded with status ${response.status}`);
+      throw new Error(
+        `Perplexity API error: ${response.status} - ${responseText}`
+      );
     }
 
-    const jsonResponse = await response.json();
+    const jsonResponse = JSON.parse(responseText);
 
     if (!jsonResponse.choices || !jsonResponse.choices[0]) {
-      throw new Error("Invalid response format from Perplexity API");
+      throw new Error(
+        `Invalid response format: ${JSON.stringify(jsonResponse)}`
+      );
     }
 
     const perplexityResponse = jsonResponse.choices[0].message.content;
+    console.log("Successful response:", perplexityResponse);
     res.json(perplexityResponse);
   } catch (error) {
-    console.error("Error fetching response from Perplexity AI:", error);
+    console.error("Detailed error in Perplexity endpoint:", {
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause,
+    });
+
     res.status(500).json({
       error: "Error fetching response from Perplexity AI",
       details: error.message,
+      timestamp: new Date().toISOString(),
     });
   }
 });
