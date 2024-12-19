@@ -123,7 +123,7 @@ app.post("/response/perplexity", async (req, res) => {
       authorization: `Bearer ${process.env.PERPLEXITY_KEY}`,
     },
     body: JSON.stringify({
-      model: "sonar-medium-online",
+      model: "llama-3.1-sonar-small-128k-online", // Updated to correct model name
       messages: [
         { role: "system", content: "Be precise and concise." },
         { role: "user", content: prompt },
